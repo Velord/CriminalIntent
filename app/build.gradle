@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 29
     defaultConfig {
@@ -20,6 +22,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "some/path/goes/here/")
+        }
+    }
 }
 
 dependencies {
@@ -33,4 +40,10 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
+
+    implementation 'androidx.core:core-ktx:1.2.0-alpha04'
+    //Room API containing all the classes and annotations
+    implementation 'androidx.room:room-runtime:2.2.0-rc01'
+    //will generate your database implementation based on the annotations
+    kapt 'androidx.room:room-compiler:2.2.0-rc01'
 }

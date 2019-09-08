@@ -2,17 +2,14 @@ package velord.bnrg.criminalintent.viewModel
 
 import androidx.lifecycle.ViewModel
 import velord.bnrg.criminalintent.model.Crime
+import velord.bnrg.criminalintent.repository.CrimeRepository
 
 class CrimeListViewModel:ViewModel() {
 
-    val crimes = mutableListOf<Crime>()
+    private val crimeRepository = CrimeRepository.get()
+    val crimeListLiveData = crimeRepository.getCrimes()
 
-    init {
-        initCrimes(100, crimes).reverse()
-    }
-
-
-    private tailrec fun initCrimes(n: Int, acc: MutableList<Crime>
+    private tailrec fun initCrimesFake(n: Int, acc: MutableList<Crime>
     ): MutableList<Crime> = when {
         n == 0 -> acc
         else -> {
@@ -22,7 +19,7 @@ class CrimeListViewModel:ViewModel() {
                 requiresPolice = n % 3 == 0
             }
             acc += crime
-            initCrimes(n - 1, acc)
+            initCrimesFake(n - 1, acc)
         }
     }
 }

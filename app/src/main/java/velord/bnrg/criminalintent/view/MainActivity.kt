@@ -3,7 +3,6 @@ package velord.bnrg.criminalintent.view
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import velord.bnrg.criminalintent.CrimeFragment
 import velord.bnrg.criminalintent.R
 import velord.bnrg.criminalintent.viewModel.CrimeListFragment
 

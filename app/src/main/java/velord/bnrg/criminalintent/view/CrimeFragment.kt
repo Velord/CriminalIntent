@@ -1,4 +1,4 @@
-package velord.bnrg.criminalintent
+package velord.bnrg.criminalintent.view
 
 import android.os.Bundle
 import android.text.Editable
@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import velord.bnrg.criminalintent.R
 import velord.bnrg.criminalintent.model.Crime
 
 class CrimeFragment: Fragment() {
