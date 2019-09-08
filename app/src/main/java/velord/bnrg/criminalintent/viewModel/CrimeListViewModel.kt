@@ -8,7 +8,7 @@ class CrimeListViewModel:ViewModel() {
     val crimes = mutableListOf<Crime>()
 
     init {
-        initCrimes(100, crimes)
+        initCrimes(100, crimes).reverse()
     }
 
 
