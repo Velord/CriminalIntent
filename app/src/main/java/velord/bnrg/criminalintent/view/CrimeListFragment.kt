@@ -1,5 +1,6 @@
-package velord.bnrg.criminalintent.viewModel
+package velord.bnrg.criminalintent.view
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,14 +16,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import velord.bnrg.criminalintent.R
 import velord.bnrg.criminalintent.model.Crime
-
-
-
+import velord.bnrg.criminalintent.viewModel.CrimeListViewModel
+import java.util.*
 
 
 private val TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
+
+    //Required interface for hosting activities
+    interface Callbacks {
+        fun onCrimeSelected(crimeId: UUID)
+    }
+
+    private var callbacks: Callbacks? =  null
 
     private lateinit var crimeRecyclerView: RecyclerView
     private var adapter: CrimeAdapter =  CrimeAdapter(emptyList())
@@ -30,6 +37,11 @@ class CrimeListFragment : Fragment() {
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callbacks = context as Callbacks?
     }
 
     override fun onCreateView(
@@ -51,10 +63,15 @@ class CrimeListFragment : Fragment() {
             Observer { crimes ->
                 crimes?.let {
                     Log.i(TAG, "Got crimes ${crimes.size}")
-                    updateUI(crimes)
+                    updateUI(crimes.reversed())
                 }
             }
         )
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        callbacks = null
     }
 
     private val initViewsEvents = {
@@ -75,6 +92,7 @@ class CrimeListFragment : Fragment() {
 
     private val updateUI: (List<Crime>) -> Unit = { crimes ->
         adapter = CrimeAdapter(crimes)
+        crimeRecyclerView.adapter = adapter
     }
 
     private inner class CrimeHolder(view: View)
@@ -90,6 +108,7 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun onClick(p0: View?) {
+            callbacks?.onCrimeSelected(crimeId = crime.id)
             Toast.makeText(context, "${crime.title} pressed", Toast.LENGTH_SHORT)
                 .show()
         }

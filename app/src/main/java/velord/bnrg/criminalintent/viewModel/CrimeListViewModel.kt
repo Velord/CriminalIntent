@@ -9,7 +9,7 @@ class CrimeListViewModel:ViewModel() {
     private val crimeRepository = CrimeRepository.get()
     val crimeListLiveData = crimeRepository.getCrimes()
 
-    private tailrec fun initCrimesFake(n: Int, acc: MutableList<Crime>
+    tailrec fun initCrimesFake(n: Int, acc: MutableList<Crime>
     ): MutableList<Crime> = when {
         n == 0 -> acc
         else -> {
