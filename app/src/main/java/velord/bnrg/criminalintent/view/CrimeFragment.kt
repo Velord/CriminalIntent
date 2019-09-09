@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -19,8 +20,11 @@ import java.util.*
 
 private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
+private const val DIALOG_DATE = "DialogDate"
+private const val DIALOG_TIME = "DialogTime"
+private const val REQUEST_CODE = 0
 
-class CrimeFragment: Fragment() {
+class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
     //The values in  this crime property represent
     // the edits the user is  currently making
     private lateinit var crime: Crime
@@ -42,6 +46,7 @@ class CrimeFragment: Fragment() {
     }
 
     private lateinit var dateButoon: Button
+    private lateinit var timeButton: Button
     private lateinit var solvedCheckBox: CheckBox
 
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
@@ -89,6 +94,16 @@ class CrimeFragment: Fragment() {
         crimeDetailViewModel.saveCrime(crime)
     }
 
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
+    }
+
+    override fun onTimeSelected(date: Date) {
+        crime.date = date
+        updateUI()
+    }
+
     private fun updateUI() {
         titleField.setText(crime.title)
         dateButoon.text = crime.date.toString()
@@ -106,21 +121,32 @@ class CrimeFragment: Fragment() {
     private val findAllViews: (View) -> Unit = { view ->
         titleField = view.findViewById(R.id.crime_title) as EditText
         dateButoon = view.findViewById(R.id.crime_date) as Button
+        timeButton = view.findViewById(R.id.crime_time) as Button
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
     }
 
     private val applyAllEventsToViews = {
         titleField.addTextChangedListener(titleWatcher)
-        
-        dateButoon.apply {
-            text = crime.date.toString()
-            isEnabled = false
+
+        dateButoon.setOnClickListener {
+            openDialogFragment(DatePickerFragment.newInstance(crime.date), DIALOG_DATE)
         }
-        
+
+        timeButton.setOnClickListener {
+            openDialogFragment(TimePickerFragment.newInstance(crime.date), DIALOG_TIME)
+        }
+
         solvedCheckBox.apply {
             setOnCheckedChangeListener { _, isChecked ->
                 crime.isSolved = isChecked
             }
+        }
+    }
+
+    private val openDialogFragment: (DialogFragment, String) -> Unit = { dialogFragment, dialogArg ->
+        dialogFragment.apply {
+            setTargetFragment(this@CrimeFragment, REQUEST_CODE)
+            show(this@CrimeFragment.requireFragmentManager(), dialogArg)
         }
     }
 
