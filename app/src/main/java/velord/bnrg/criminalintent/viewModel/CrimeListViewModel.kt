@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.repository.CrimeRepository
 
-class CrimeListViewModel:ViewModel() {
+class CrimeListViewModel : ViewModel() {
 
     private val crimeRepository = CrimeRepository.get()
     val crimeListLiveData = crimeRepository.getCrimes()
+
+    fun addCrime(crime: Crime) = crimeRepository.addCrime(crime)
 
     tailrec fun initCrimesFake(n: Int, acc: MutableList<Crime>
     ): MutableList<Crime> = when {

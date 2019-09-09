@@ -7,4 +7,6 @@
     <string name="crime_required_police">Contact Police</string>
     <string name="crime_title_item">Crime Title</string>
     <string name="crime_date_item">Crime Date</string>
+    <string name="new_crime">New Crime</string>
+    <string name="no_crimes">There are no crimes</string>
 </resources>

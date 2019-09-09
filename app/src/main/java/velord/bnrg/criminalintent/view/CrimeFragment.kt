@@ -104,9 +104,18 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         updateUI()
     }
 
+
+
     private fun updateUI() {
         titleField.setText(crime.title)
-        dateButoon.text = crime.date.toString()
+
+        val dateForDateButton = android.text.format.DateFormat.format(
+            "EEEE, MMM dd, yyyy", this.crime.date)
+        val dateForTimeButton = android.text.format.DateFormat.format(
+            "HH : mm", this.crime.date)
+        dateButoon.text = dateForDateButton
+        timeButton.text = dateForTimeButton
+
         solvedCheckBox.apply {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()

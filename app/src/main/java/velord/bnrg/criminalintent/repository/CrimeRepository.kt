@@ -40,7 +40,11 @@ class CrimeRepository private constructor(context: Context){
         crimeDao.updateCrime(crime)
     }
 
-    fun addCrime(crime: Crime) = executor.execute {
+    fun addCrimeViaExecutor(crime: Crime) = executor.execute {
+        crimeDao.insertCrime(crime)
+    }
+
+    fun addCrime(crime: Crime) = GlobalScope.launch {
         crimeDao.insertCrime(crime)
     }
 

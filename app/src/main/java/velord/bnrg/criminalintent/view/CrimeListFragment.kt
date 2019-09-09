@@ -3,9 +3,7 @@ package velord.bnrg.criminalintent.view
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -27,6 +25,10 @@ class CrimeListFragment : Fragment() {
     //Required interface for hosting activities
     interface Callbacks {
         fun onCrimeSelected(crimeId: UUID)
+
+        fun onNoOneCrime()
+
+        fun hide()
     }
 
     private var callbacks: Callbacks? =  null
@@ -42,6 +44,13 @@ class CrimeListFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         callbacks = context as Callbacks?
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        //let the FragmentManager know that
+        // CrimeListFragment needs to receive menu callbacks
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -63,7 +72,13 @@ class CrimeListFragment : Fragment() {
             Observer { crimes ->
                 crimes?.let {
                     Log.i(TAG, "Got crimes ${crimes.size}")
-                    updateUI(crimes.reversed())
+                    when(crimes.size) {
+                        0 -> callbacks?.onNoOneCrime()
+                        else ->  {
+                            callbacks?.hide()
+                            updateUI(crimes.reversed())
+                        }
+                    }
                 }
             }
         )
@@ -73,6 +88,22 @@ class CrimeListFragment : Fragment() {
         super.onDetach()
         callbacks = null
     }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_crime_list, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.itemId) {
+            R.id.new_crime -> {
+                val crime = Crime()
+                crimeListViewModel.addCrime(crime)
+                callbacks?.onCrimeSelected(crime.id)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
 
     private val initViewsEvents = {
         crimeRecyclerView.layoutManager = LinearLayoutManager(context)
