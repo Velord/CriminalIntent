@@ -1,10 +1,12 @@
 package velord.bnrg.criminalintent.view
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.text.Editable
@@ -16,6 +18,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.Toast
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -34,6 +38,7 @@ private const val REQUEST_DATE = 1
 private const val REQUEST_CONTACT = 2
 private const val DATE_FORMAT = "EEE, MMM, dd, yyyy"
 private const val TIME_FORMAT = "HH : mm"
+private const val PERMISSIONS_REQUEST_READ_CONTACTS = 3
 
 class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
     //The values in  this crime property represent
@@ -61,6 +66,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     private lateinit var solvedCheckBox: CheckBox
     private lateinit var reportButton: Button
     private lateinit var suspectButton: Button
+    private lateinit var callButton: Button
 
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeDetailViewModel::class.java)
@@ -143,6 +149,61 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                getContactPhone(crime.suspect)
+            else
+                Toast.makeText(context,
+                    getString(R.string.permission_request_read_contacts_disabled),
+                    Toast.LENGTH_LONG).show()
+
+        }
+    }
+
+    private fun getContactPhone(suspectName: String) {
+        val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+        val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+
+        val  cursor = requireActivity().contentResolver
+            .query(uri,
+                projection,
+                ContactsContract.Contacts.HAS_PHONE_NUMBER,
+                null,null)
+
+        cursor.use {
+            cursor!!.moveToFirst();
+            while (cursor.moveToNext()) {
+                if (cursor.getString(1) == suspectName)
+                    makeCall( cursor.getString(0))
+            }
+        }
+    }
+
+
+    private fun checkRuntimeReadContactPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            checkSelfPermission( context!!,
+                Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                arrayOf(Manifest.permission.READ_CONTACTS),
+                PERMISSIONS_REQUEST_READ_CONTACTS)
+            //callback onRequestPermissionsResult
+        } else // if permission is granted
+           getContactPhone(crime.suspect)
+    }
+
+    private fun makeCall(phone: String) {
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.setData(Uri.parse("tel:$phone"))
+        startActivity(intent)
+    }
+
     private fun updateUI() {
         titleField.setText(crime.title)
 
@@ -157,8 +218,11 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()
         }
-        if (crime.suspect.isNotEmpty())
+
+        if (crime.suspect.isNotEmpty()) {
             suspectButton.text = crime.suspect
+            callButton.isEnabled = true
+        } else callButton.isEnabled = false
     }
 
     private fun getCrimeReport(): String {
@@ -188,6 +252,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
         reportButton = view.findViewById(R.id.crime_report) as Button
         suspectButton = view.findViewById(R.id.crime_suspect) as Button
+        callButton = view.findViewById(R.id.crime_call) as Button
     }
 
     private val applyAllEventsToViews = {
@@ -232,6 +297,11 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
                     PackageManager.MATCH_DEFAULT_ONLY)
             if (resolvedActivity == null)
                 isEnabled =  false
+        }
+        callButton.apply {
+            setOnClickListener {
+                checkRuntimeReadContactPermission()
+            }
         }
     }
 

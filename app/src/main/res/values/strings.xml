@@ -20,4 +20,6 @@ The crime was discovered on %2$s. %3$s, and %4$s
     <string name="crime_report_suspect">the suspect is %s.</string>
     <string name="crime_report_subject">CriminalIntent Crime Report</string>
     <string name="send_report">Send crime report via</string>
+    <string name="call_suspect">Call to suspect</string>
+    <string name="permission_request_read_contacts_disabled">Need permission to read contact number !</string>
 </resources>
