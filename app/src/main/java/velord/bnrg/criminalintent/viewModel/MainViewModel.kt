@@ -9,4 +9,7 @@ class MainViewModel : ViewModel() {
     private val crimeRepository = CrimeRepository.get()
 
     fun addCrime(crime: Crime) = crimeRepository.addCrime(crime)
+
+    fun createCrime() = Crime()
+
 }

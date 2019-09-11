@@ -7,6 +7,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.repository.database.CrimeDatabase
+import velord.bnrg.criminalintent.repository.database.migration_2_3
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -18,8 +19,7 @@ class CrimeRepository private constructor(context: Context){
         context.applicationContext,
         CrimeDatabase::class.java,
         DATABASE_NAME)
-        .allowMainThreadQueries()
-        .fallbackToDestructiveMigration()
+        .addMigrations(migration_2_3)
         .build()
 
 

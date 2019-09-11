@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import velord.bnrg.criminalintent.R
-import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.viewModel.MainViewModel
 import java.util.*
 
@@ -61,7 +60,7 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
     private val initViewsEvent = {
         newCrimeButton.setOnClickListener {
             disableViewsVisibility()
-            val crime = Crime()
+            val crime = mainViewModel.createCrime()
             mainViewModel.addCrime(crime)
             val fragment = CrimeFragment.newInstance(crime.id)
             replaceFragment(fragment)
