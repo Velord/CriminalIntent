@@ -9,24 +9,25 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.Toast
+import android.widget.*
 import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.content.FileProvider
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import velord.bnrg.criminalintent.R
+import velord.bnrg.criminalintent.getScaledBitmap
 import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.viewModel.CrimeDetailViewModel
+import java.io.File
 import java.util.*
 
 private const val TAG = "CrimeFragment"
@@ -36,14 +37,21 @@ private const val DIALOG_TIME = "DialogTime"
 private const val REQUEST_CODE = 0
 private const val REQUEST_DATE = 1
 private const val REQUEST_CONTACT = 2
+private const val PERMISSIONS_REQUEST_READ_CONTACTS = 3
+private const val REQUEST_PHOTO = 4
 private const val DATE_FORMAT = "EEE, MMM, dd, yyyy"
 private const val TIME_FORMAT = "HH : mm"
-private const val PERMISSIONS_REQUEST_READ_CONTACTS = 3
 
 class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
     //The values in  this crime property represent
     // the edits the user is  currently making
     private lateinit var crime: Crime
+    private lateinit var photoFile: File
+    private lateinit var photoUri: Uri
+
+    private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
+        ViewModelProviders.of(this).get(CrimeDetailViewModel::class.java)
+    }
 
     private lateinit var titleField: EditText
     private val titleWatcher = object : TextWatcher {
@@ -67,10 +75,8 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     private lateinit var reportButton: Button
     private lateinit var suspectButton: Button
     private lateinit var callButton: Button
-
-    private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
-        ViewModelProviders.of(this).get(CrimeDetailViewModel::class.java)
-    }
+    private lateinit var photoView: ImageView
+    private lateinit var cameraButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,16 +96,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        crimeDetailViewModel.crimeLiveData.observe(
-            viewLifecycleOwner,
-            Observer { crime ->
-                crime?.let {
-                    this.crime = crime
-                    updateUI()
-                }
-            }
-        )
+        observeCrimeLiveData()
     }
 
     override fun onStart() {
@@ -113,39 +110,14 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         crimeDetailViewModel.saveCrime(crime)
     }
 
-    override fun onDateSelected(date: Date) {
-        crime.date = date
-        updateUI()
-    }
-
-    override fun onTimeSelected(date: Date) {
-        crime.date = date
-        updateUI()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when {
-            resultCode != Activity.RESULT_OK -> return
-            requestCode == REQUEST_CONTACT && data != null -> {
-                val contactUri: Uri? =  data.data
-                // Specify which fields you want your query to return values for
-                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
-                // Perform your query - the contactUri is like a "where" clause here
-                val cursor = requireActivity().contentResolver
-                    .query(contactUri!!, queryFields, null, null, null)
-                cursor?.use {
-                    // Verify cursor contains at least one result
-                    if (it.count == 0)
-                        return
-                    // Pull out the first column of the first row of data -
-                    // that is your suspect's name
-                    it.moveToFirst()
-                    val suspect = it.getString(0)
-                    crime.suspect = suspect
-                    crimeDetailViewModel.saveCrime(crime)
-                    suspectButton.text = suspect
-                }
-            }
+            resultCode != Activity.RESULT_OK ->
+                return
+            requestCode == REQUEST_CONTACT && data != null ->
+                requestContactSuccess(data)
+            requestCode == REQUEST_PHOTO ->
+                requestPhotoSuccess()
         }
     }
 
@@ -165,6 +137,73 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         }
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        requireActivity().revokeUriPermission(photoUri,
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+    }
+
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
+    }
+
+    override fun onTimeSelected(date: Date) {
+        crime.date = date
+        updateUI()
+    }
+
+    private fun requestPhotoSuccess() {
+        requireActivity().revokeUriPermission(photoUri,
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        updatePhotoView()
+    }
+
+    private fun requestContactSuccess(data: Intent?) {
+        val contactUri: Uri? =  data!!.data
+        // Specify which fields you want your query to return values for
+        val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+        // Perform your query - the contactUri is like a "where" clause here
+        val cursor = requireActivity().contentResolver
+            .query(contactUri!!, queryFields, null, null, null)
+        cursor?.use {
+            // Verify cursor contains at least one result
+            if (it.count == 0)
+                return
+            // Pull out the first column of the first row of data -
+            // that is your suspect's name
+            it.moveToFirst()
+            val suspect = it.getString(0)
+            crime.suspect = suspect
+            crimeDetailViewModel.saveCrime(crime)
+            suspectButton.text = suspect
+        }
+    }
+
+    private fun updatePhotoView() {
+        if (photoFile.exists()) {
+            val bitmap = getScaledBitmap(photoFile.path, requireActivity())
+            photoView.setImageBitmap(bitmap)
+        } else
+            photoView.setImageDrawable(null)
+    }
+
+    private fun observeCrimeLiveData() {
+        crimeDetailViewModel.crimeLiveData.observe(
+            viewLifecycleOwner,
+            Observer { crime ->
+                crime?.let {
+                    this.crime = crime
+                    photoFile = crimeDetailViewModel.getPhotoFile(crime)
+                    photoUri = FileProvider.getUriForFile(requireActivity(),
+                        "velord.bnrg.criminalintent.fileProvider",
+                        photoFile)
+                    updateUI()
+                }
+            }
+        )
+    }
+
     private fun getContactPhone(suspectName: String) {
         val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
         val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER,
@@ -180,11 +219,10 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
             cursor!!.moveToFirst();
             while (cursor.moveToNext()) {
                 if (cursor.getString(1) == suspectName)
-                    makeCall( cursor.getString(0))
+                    makeCall(cursor.getString(0))
             }
         }
     }
-
 
     private fun checkRuntimeReadContactPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
@@ -222,7 +260,10 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         if (crime.suspect.isNotEmpty()) {
             suspectButton.text = crime.suspect
             callButton.isEnabled = true
-        } else callButton.isEnabled = false
+        } else
+            callButton.isEnabled = false
+
+        updatePhotoView()
     }
 
     private fun getCrimeReport(): String {
@@ -253,9 +294,11 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         reportButton = view.findViewById(R.id.crime_report) as Button
         suspectButton = view.findViewById(R.id.crime_suspect) as Button
         callButton = view.findViewById(R.id.crime_call) as Button
+        photoView =  view.findViewById(R.id.crime_photo) as ImageView
+        cameraButton = view.findViewById(R.id.crime_camera) as ImageButton
     }
 
-    private val applyAllEventsToViews = {
+    private fun applyAllEventsToViews() {
         titleField.addTextChangedListener(titleWatcher)
 
         dateButoon.setOnClickListener {
@@ -301,6 +344,32 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         callButton.apply {
             setOnClickListener {
                 checkRuntimeReadContactPermission()
+            }
+        }
+        cameraButton.apply {
+            val captureImageIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+            val packageManager = requireActivity().packageManager
+            val resolvedActivity = packageManager.resolveActivity(captureImageIntent,
+                PackageManager.MATCH_DEFAULT_ONLY)
+            if (resolvedActivity ==  null)
+                isEnabled = false
+
+            setOnClickListener {
+                captureImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+
+                val cameraActivities: List<ResolveInfo> =
+                    packageManager.queryIntentActivities(captureImageIntent,
+                        PackageManager.MATCH_DEFAULT_ONLY)
+
+                for (cameraActivity in cameraActivities)
+                    requireActivity().grantUriPermission(
+                        cameraActivity.activityInfo.packageName,
+                        photoUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+
+                startActivityForResult(captureImageIntent, REQUEST_PHOTO)
             }
         }
     }

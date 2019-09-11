@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.repository.database.CrimeDatabase
 import velord.bnrg.criminalintent.repository.database.migration_2_3
+import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -22,9 +23,9 @@ class CrimeRepository private constructor(context: Context){
         .addMigrations(migration_2_3)
         .build()
 
-
     private val crimeDao = database.crimeDao()
     private val executor = Executors.newSingleThreadExecutor()
+    private val filesDir = context.applicationContext.filesDir
 
     fun getCrimes(): LiveData<List<Crime>> = crimeDao.getCrimes()
 
@@ -47,6 +48,8 @@ class CrimeRepository private constructor(context: Context){
     fun addCrime(crime: Crime) = GlobalScope.launch {
         crimeDao.insertCrime(crime)
     }
+
+    fun getPhotoFile(crime: Crime): File = File(filesDir, crime.photoFileName)
 
     companion object {
 

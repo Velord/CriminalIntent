@@ -6,6 +6,7 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.repository.CrimeRepository
+import java.io.File
 import java.util.*
 
 class CrimeDetailViewModel : ViewModel() {
@@ -23,7 +24,9 @@ class CrimeDetailViewModel : ViewModel() {
         crimeIdLiveData.value = crimeId
     }
 
-    fun saveCrime(crime: Crime) {
-        crimeRepository.updateCrime(crime)
-    }
+    fun saveCrime(crime: Crime) = crimeRepository.updateCrime(crime)
+
+
+    fun getPhotoFile(crime: Crime): File =
+        crimeRepository.getPhotoFile(crime)
 }
