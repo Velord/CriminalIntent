@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import velord.bnrg.criminalintent.R
+import velord.bnrg.criminalintent.doOnGlobalLayout
 import velord.bnrg.criminalintent.getScaledBitmap
 import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.viewModel.CrimeDetailViewModel
@@ -77,6 +78,9 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     private lateinit var callButton: Button
     private lateinit var photoView: ImageView
     private lateinit var cameraButton: ImageButton
+
+    private var photoViewWidth: Int? = null
+    private var photoViewHeight: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -180,10 +184,16 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         }
     }
 
-    private fun updatePhotoView() {
-        if (photoFile.exists()) {
-            val bitmap = getScaledBitmap(photoFile.path, requireActivity())
-            photoView.setImageBitmap(bitmap)
+    private fun updatePhotoView(width: Int? = photoViewWidth ,
+                                height: Int? = photoViewHeight) {
+        if (::photoFile.isInitialized && photoFile.exists()) {
+            if (width != null && height != null) {
+                val bitmap = getScaledBitmap(photoFile.path, width, height)
+                photoView.setImageBitmap(bitmap)
+            } else {
+                val bitmap = getScaledBitmap(photoFile.path, requireActivity())
+                photoView.setImageBitmap(bitmap)
+            }
         } else
             photoView.setImageDrawable(null)
     }
@@ -300,15 +310,12 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
 
     private fun applyAllEventsToViews() {
         titleField.addTextChangedListener(titleWatcher)
-
         dateButoon.setOnClickListener {
             openDialogFragment(DatePickerFragment.newInstance(crime.date), DIALOG_DATE)
         }
-
         timeButton.setOnClickListener {
             openDialogFragment(TimePickerFragment.newInstance(crime.date), DIALOG_TIME)
         }
-
         solvedCheckBox.apply {
             setOnCheckedChangeListener { _, isChecked ->
                 crime.isSolved = isChecked
@@ -328,7 +335,8 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         }
         suspectButton.apply {
             val pickContactIntent =
-                Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+                Intent(Intent.ACTION_PICK,
+                    ContactsContract.Contacts.CONTENT_URI)
 
             setOnClickListener {
                 startActivityForResult(pickContactIntent, REQUEST_CONTACT)
@@ -372,14 +380,21 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
                 startActivityForResult(captureImageIntent, REQUEST_PHOTO)
             }
         }
-    }
+        photoView.doOnGlobalLayout {
+            photoViewWidth = view?.measuredWidth
+            photoViewHeight = view?.measuredHeight
 
-    private val openDialogFragment: (DialogFragment, String) -> Unit = { dialogFragment, dialogArg ->
-        dialogFragment.apply {
-            setTargetFragment(this@CrimeFragment, REQUEST_CODE)
-            show(this@CrimeFragment.requireFragmentManager(), dialogArg)
+            updatePhotoView()
         }
     }
+
+    private val openDialogFragment: (DialogFragment, String) -> Unit =
+        { dialogFragment, dialogArg ->
+            dialogFragment.apply {
+                setTargetFragment(this@CrimeFragment, REQUEST_CODE)
+                show(this@CrimeFragment.requireFragmentManager(), dialogArg)
+            }
+        }
 
     companion object {
         val newInstance: (UUID) -> CrimeFragment = { crimeId ->
