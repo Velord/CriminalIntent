@@ -10,11 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import velord.bnrg.criminalintent.R
 import velord.bnrg.criminalintent.viewModel.MainViewModel
+import java.io.File
 import java.util.*
 
 private const val TAG = "MainActivity"
 
-class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
+class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks, CrimeFragment.Callbacks {
 
     private lateinit var noOneCrimeTextView: TextView
     private lateinit var newCrimeButton: Button
@@ -48,6 +49,11 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
         disableViewsVisibility()
     }
 
+    override fun onCrimePhotoPressed(file: File) {
+        Log.d(TAG, "Main Activity.onCrimePhotoPressed")
+        val fragment = ZoomedPhotoFragment.newInstance(file)
+        replaceFragment(fragment)
+    }
 
     private val replaceFragment: (Fragment) -> Unit = {
         supportFragmentManager
