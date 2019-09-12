@@ -13,7 +13,6 @@ import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,6 +31,7 @@ import velord.bnrg.criminalintent.model.Crime
 import velord.bnrg.criminalintent.updatePhotoView
 import velord.bnrg.criminalintent.viewModel.CrimeDetailViewModel
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
 private const val TAG = "CrimeFragment"
@@ -262,10 +262,10 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     private fun updateUI() {
         titleField.setText(crime.title)
 
-        val dateForDateButton = DateFormat.format(
-            DATE_FORMAT, this.crime.date)
-        val dateForTimeButton = DateFormat.format(
-            TIME_FORMAT, this.crime.date)
+        val dateForDateButton = parseDateTime(crime.date,
+            DATE_FORMAT)
+        val dateForTimeButton = parseDateTime(crime.date,
+            TIME_FORMAT)
         dateButoon.text = dateForDateButton
         timeButton.text = dateForTimeButton
 
@@ -288,7 +288,8 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
             getString(R.string.crime_report_solved)
         else getString(R.string.crime_report_unsolved)
 
-        val dateString = DateFormat.format(DATE_FORMAT, crime.date).toString()
+        val dateString = parseDateTime(crime.date,
+            DATE_FORMAT)
         val suspect = if (crime.suspect.isBlank())
             getString(R.string.crime_report_no_suspect)
         else
@@ -296,6 +297,11 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
 
         return getString(R.string.crime_report,
             crime.title, dateString, solvedString, suspect)
+    }
+
+    private fun parseDateTime(value: Date, format: String): String {
+        val sdf = SimpleDateFormat(format, Locale.getDefault())
+        return sdf.format(value)
     }
 
     private val loadCrimeFromDatabase: () -> Unit = {
