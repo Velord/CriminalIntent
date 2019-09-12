@@ -4,8 +4,11 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Point
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-fun getScaledBitmap(path: String, destWith: Int, destHeight: Int): Bitmap {
+suspend fun getScaledBitmap(path: String, destWith: Int, destHeight: Int): Bitmap =
+    withContext(Dispatchers.IO) {
     // Read in the dimensions of the image on disk
     var options = BitmapFactory.Options()
     options.inJustDecodeBounds = true
@@ -29,12 +32,13 @@ fun getScaledBitmap(path: String, destWith: Int, destHeight: Int): Bitmap {
     options = BitmapFactory.Options()
     options.inSampleSize = inSampleSize
     // Read in and create final bitmap
-    return BitmapFactory.decodeFile(path, options)
+     BitmapFactory.decodeFile(path, options)
 }
 
-fun getScaledBitmap(path: String, activity: Activity): Bitmap {
-    val size = Point()
-    activity.windowManager.defaultDisplay.getSize(size)
+suspend fun getScaledBitmap(path: String, activity: Activity): Bitmap =
+    withContext(Dispatchers.IO) {
+        val size = Point()
+        activity.windowManager.defaultDisplay.getSize(size)
 
-    return getScaledBitmap(path, size.x, size.y)
-}
+        getScaledBitmap(path, size.x, size.y)
+    }

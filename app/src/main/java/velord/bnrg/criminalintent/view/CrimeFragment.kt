@@ -24,7 +24,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import velord.bnrg.criminalintent.R
 import velord.bnrg.criminalintent.doOnGlobalLayout
 import velord.bnrg.criminalintent.model.Crime
@@ -198,8 +199,10 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
 
     private fun updatePhotoView(width: Int? = photoViewWidth,
                                 height: Int? = photoViewHeight) {
-        if (::photoFile.isInitialized)
-            runBlocking { updatePhotoView(photoView, photoFile, width, height) }
+        GlobalScope.launch {
+            if (::photoFile.isInitialized)
+                updatePhotoView(photoView, photoFile, width, height)
+        }
     }
 
     private fun observeCrimeLiveData() {

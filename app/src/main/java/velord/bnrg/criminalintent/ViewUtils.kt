@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 inline fun View.doOnGlobalLayout(crossinline action: (view: View) -> Unit) {
@@ -40,18 +40,14 @@ inline fun View.doOnGlobalLayout(crossinline action: (view: View) -> Unit) {
 suspend fun Fragment.updatePhotoView(view: ImageView,
                              photoFile: File,
                              width: Int? = null,
-                             height: Int? = null) {
+                             height: Int? = null) = withContext(Dispatchers.Main) {
     if (photoFile.exists()) {
         if (width != null && height != null) {
-            val bitmap = coroutineScope {
-                async { getScaledBitmap(photoFile.path, width, height) }
-            }
-            view.setImageBitmap(bitmap.await())
+            val bitmap =  getScaledBitmap(photoFile.path, width, height)
+            view.setImageBitmap(bitmap)
         } else {
-            val bitmap = coroutineScope {
-                async { getScaledBitmap(photoFile.path, requireActivity()) }
-            }
-            view.setImageBitmap(bitmap.await())
+            val bitmap =  getScaledBitmap(photoFile.path, requireActivity())
+            view.setImageBitmap(bitmap)
         }
     } else
         view.setImageDrawable(null)

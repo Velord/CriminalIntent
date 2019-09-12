@@ -6,7 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import velord.bnrg.criminalintent.R
 import velord.bnrg.criminalintent.doOnGlobalLayout
 import velord.bnrg.criminalintent.updatePhotoView
@@ -50,7 +51,7 @@ class ZoomedPhotoFragment : Fragment()  {
 
     private fun updatePhotoView(width: Int? = null,
                                 height: Int? = null) {
-        runBlocking {
+        GlobalScope.launch {
             if (::photoFile.isInitialized)
                 updatePhotoView(zoomImageView, photoFile, width, height)
         }
