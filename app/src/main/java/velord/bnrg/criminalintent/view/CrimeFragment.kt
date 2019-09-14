@@ -38,23 +38,25 @@ private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
 private const val DIALOG_DATE = "DialogDate"
 private const val DIALOG_TIME = "DialogTime"
-private const val REQUEST_CODE = 0
-private const val REQUEST_DATE = 1
-private const val REQUEST_CONTACT = 2
-private const val PERMISSIONS_REQUEST_READ_CONTACTS = 3
-private const val REQUEST_PHOTO = 4
 private const val DATE_FORMAT = "EEE, MMM, dd, yyyy"
 private const val TIME_FORMAT = "HH : mm"
+private const val REQUEST_CODE = 0
+private const val REQUEST_CONTACT = 1
+private const val PERMISSIONS_REQUEST_READ_CONTACTS = 2
+private const val REQUEST_PHOTO = 3
 private const val PHOTO_SUCCESS_ADDED_DURATION_IN_MILLIS = 1000L
 
-class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
+class CrimeFragment:
+    Fragment(),
+    DatePickerFragment.Callbacks,
+    TimePickerFragment.Callbacks {
 
     interface Callbacks {
         fun onCrimePhotoPressed(file: File)
     }
     private var callbacks: Callbacks? = null
     //The values in  this crime property represent
-    // the edits the user is  currently making
+    //the edits the user is currently making
     private lateinit var crime: Crime
     private lateinit var photoFile: File
     private lateinit var photoUri: Uri
@@ -177,8 +179,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     }
 
     override fun onTimeSelected(date: Date) {
-        crime.date = date
-        updateUI()
+        onDateSelected(date)
     }
 
     private fun talkBackOfMakePhotoResult(pronounce: String) {
@@ -204,20 +205,20 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         // Specify which fields you want your query to return values for
         val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
         // Perform your query - the contactUri is like a "where" clause here
-        val cursor = requireActivity().contentResolver
+        requireActivity().contentResolver
             .query(contactUri!!, queryFields, null, null, null)
-        cursor?.use {
-            // Verify cursor contains at least one result
-            if (it.count == 0)
-                return
-            // Pull out the first column of the first row of data -
-            // that is your suspect's name
-            it.moveToFirst()
-            val suspect = it.getString(0)
-            crime.suspect = suspect
-            crimeDetailViewModel.saveCrime(crime)
-            suspectButton.text = suspect
-        }
+            ?.use {
+                // Verify cursor contains at least one result
+                if (it.count == 0)
+                    return
+                // Pull out the first column of the first row of data -
+                // that is your suspect's name
+                it.moveToFirst()
+                val suspect = it.getString(0)
+                crime.suspect = suspect
+                crimeDetailViewModel.saveCrime(crime)
+                suspectButton.text = suspect
+            }
     }
 
     private fun updatePhotoView(width: Int? = photoViewWidth,
@@ -277,24 +278,27 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     }
 
     private fun makeCall(phone: String) {
-        val intent = Intent(Intent.ACTION_DIAL)
-        intent.setData(Uri.parse("tel:$phone"))
+        val intent = Intent(Intent.ACTION_DIAL).also {
+            it.setData(Uri.parse("tel:$phone"))
+        }
         startActivity(intent)
     }
 
     private fun updateUI() {
         titleField.setText(crime.title)
 
-        val dateForDateButton = parseLocalDateTime(
-            crime.date,
-            DATE_FORMAT
-        )
-        val dateForTimeButton = parseLocalDateTime(
-            crime.date,
-            TIME_FORMAT
-        )
-        dateButoon.text = dateForDateButton
-        timeButton.text = dateForTimeButton
+        dateButoon.apply {
+            text = parseLocalDateTime(
+                crime.date,
+                DATE_FORMAT
+            )
+        }
+        timeButton.apply {
+            text = parseLocalDateTime(
+                crime.date,
+                TIME_FORMAT
+            )
+        }
 
         solvedCheckBox.apply {
             isChecked = crime.isSolved
@@ -353,10 +357,8 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         timeButton.setOnClickListener {
             openDialogFragment(TimePickerFragment.newInstance(crime.date), DIALOG_TIME)
         }
-        solvedCheckBox.apply {
-            setOnCheckedChangeListener { _, isChecked ->
-                crime.isSolved = isChecked
-            }
+        solvedCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            crime.isSolved = isChecked
         }
         reportButton.setOnClickListener {
             Intent(Intent.ACTION_SEND).apply {
@@ -386,10 +388,8 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
             if (resolvedActivity == null)
                 isEnabled =  false
         }
-        callButton.apply {
-            setOnClickListener {
-                checkRuntimeReadContactPermission()
-            }
+        callButton.setOnClickListener {
+            checkRuntimeReadContactPermission()
         }
         cameraButton.apply {
             val captureImageIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -435,12 +435,10 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         }
     }
 
-    private val openDialogFragment: (DialogFragment, String) -> Unit =
-        { dialogFragment, dialogArg ->
-            dialogFragment.apply {
-                setTargetFragment(this@CrimeFragment, REQUEST_CODE)
-                show(this@CrimeFragment.requireFragmentManager(), dialogArg)
-            }
+    private fun openDialogFragment(dialogFragment: DialogFragment, dialogArg: String) =
+        dialogFragment.apply {
+            setTargetFragment(this@CrimeFragment, REQUEST_CODE)
+            show(this@CrimeFragment.requireFragmentManager(), dialogArg)
         }
 
     companion object {

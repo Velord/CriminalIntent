@@ -24,11 +24,13 @@ class DatePickerFragment: DialogFragment() {
     private val initDateListener = {
         DatePickerDialog.OnDateSetListener {
                 _: DatePicker, year: Int, month: Int, day: Int ->
-            val resultDate: Date = GregorianCalendar(year, month, day).time
-            resultDate.apply {
+            val resultDate: Date =
+                GregorianCalendar(year, month, day).time
+                    .apply {
                 hours = dateCrime.hours
                 minutes = dateCrime.minutes
             }
+
             targetFragment?.let { fragment ->
                 (fragment as Callbacks).onDateSelected(resultDate)
             }

@@ -54,7 +54,6 @@ class TimePickerFragment : DialogFragment() {
             val args = Bundle().apply {
                 putSerializable(ARG_TIME, date)
             }
-
             return TimePickerFragment().apply {
                 arguments = args
             }

@@ -116,9 +116,7 @@ class CrimeListFragment : Fragment() {
     }
 
     companion object {
-        val newInstance = {
-            CrimeListFragment()
-        }
+        fun newInstance() =  CrimeListFragment()
     }
 
     private val updateUI: (List<Crime>) -> Unit = { crimes ->
@@ -126,7 +124,8 @@ class CrimeListFragment : Fragment() {
         crimeRecyclerView.adapter = adapter
     }
 
-    private val makeContentDescription: (String, String, Boolean) -> String = { title, time, solved ->
+    private val makeContentDescription: (String, String, Boolean)
+    -> String = { title, time, solved ->
         "$title, $time, ${ 
         if (solved) getString(R.string.crime_handcuff_icon_description)
         else "crime not solved" }"
@@ -169,12 +168,12 @@ class CrimeListFragment : Fragment() {
                 text = date
                 contentDescription = this.text
             }
-            solvedImageView.apply {
-                visibility = if (crime.isSolved)
+            solvedImageView.visibility =
+                if (crime.isSolved)
                     View.VISIBLE
                 else
                     View.GONE
-            }
+
         }
     }
 
@@ -197,16 +196,16 @@ class CrimeListFragment : Fragment() {
 
         override fun getItemCount(): Int = crimes.size
 
-        override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
-            val crime = crimes[position]
-            holder.bind(crime)
-        }
+        override fun onBindViewHolder(holder: CrimeHolder, position: Int) =
+            crimes[position].let {
+                holder.bind(it)
+            }
 
-        override fun getItemViewType(position: Int): Int {
+
+        override fun getItemViewType(position: Int): Int =
             if (crimes[position].requiresPolice)
-                return VIEW_TYPE_REQUIRED_POLICE
-            return VIEW_TYPE
-        }
+                 VIEW_TYPE_REQUIRED_POLICE
+            else VIEW_TYPE
     }
 }
 
