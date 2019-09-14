@@ -28,4 +28,9 @@
     <string name="crime_photo_no_image_description">Foto de la escena del crimen (no establecida)</string>
     <string name="crime_photo_image_description">Foto de la escena del crimen (establecida)</string>
     <string name="crime_handcuff_icon_description">El crimen está resuelto</string>
+    <string name="crime_date_label">Fecha</string>
+    <string name="crime_time_label">Tiempo</string>
+    <string name="crime_suspect_label">Sospechoso</string>
+    <string name="crime_report_label">Informe </string>
+    <string name="crime_call_label">Llamar</string>
 </resources>

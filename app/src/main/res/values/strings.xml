@@ -29,4 +29,9 @@ Crime scene photo (not set)
 </string>
     <string name="crime_photo_image_description">Crime scene photo (set)</string>
     <string name="crime_handcuff_icon_description">Crime is solved</string>
+    <string name="crime_date_label">Date</string>
+    <string name="crime_time_label">Time</string>
+    <string name="crime_suspect_label">Suspect</string>
+    <string name="crime_report_label">Report</string>
+    <string name="crime_call_label">Call</string>
 </resources>
