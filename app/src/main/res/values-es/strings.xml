@@ -33,4 +33,6 @@
     <string name="crime_suspect_label">Sospechoso</string>
     <string name="crime_report_label">Informe </string>
     <string name="crime_call_label">Llamar</string>
+    <string name="photo_success_added">La foto ha sido un éxito agregado al crimen</string>
+    <string name="photo_unsuccessfully_added">No se han agregado fotos al crimen.</string>
 </resources>

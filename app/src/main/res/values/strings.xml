@@ -34,4 +34,6 @@ Crime scene photo (not set)
     <string name="crime_suspect_label">Suspect</string>
     <string name="crime_report_label">Report</string>
     <string name="crime_call_label">Call</string>
+    <string name="photo_success_added">Photo have been success added to crime</string>
+    <string name="photo_unsuccessfully_added">Photo have been not added to crime</string>
 </resources>

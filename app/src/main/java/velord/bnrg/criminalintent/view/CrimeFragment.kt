@@ -45,6 +45,7 @@ private const val PERMISSIONS_REQUEST_READ_CONTACTS = 3
 private const val REQUEST_PHOTO = 4
 private const val DATE_FORMAT = "EEE, MMM, dd, yyyy"
 private const val TIME_FORMAT = "HH : mm"
+private const val PHOTO_SUCCESS_ADDED_DURATION_IN_MILLIS = 1000L
 
 class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
 
@@ -128,12 +129,22 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when {
-            resultCode != Activity.RESULT_OK ->
-                return
-            requestCode == REQUEST_CONTACT && data != null ->
-                requestContactSuccess(data)
-            requestCode == REQUEST_PHOTO ->
-                requestPhotoSuccess()
+            resultCode != Activity.RESULT_OK -> {
+                when {
+                    requestCode == REQUEST_PHOTO && data == null ->
+                        talkBackOfMakePhotoResult(
+                            getString(R.string.photo_unsuccessfully_added))
+                    else -> return
+                }
+            }
+            resultCode == Activity.RESULT_OK -> {
+                when {
+                    requestCode == REQUEST_CONTACT && data != null ->
+                        requestContactSuccess(data)
+                    requestCode == REQUEST_PHOTO ->
+                        requestPhotoSuccess()
+                }
+            }
         }
     }
 
@@ -170,9 +181,21 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         updateUI()
     }
 
+    private fun talkBackOfMakePhotoResult(pronounce: String) {
+        //add similar experience via TalkBack by announcing
+        // what happened as a result of the camera app closing.
+        view?.apply {
+            postDelayed(Runnable {
+                announceForAccessibility(pronounce)
+            }, PHOTO_SUCCESS_ADDED_DURATION_IN_MILLIS)
+        }
+    }
+
     private fun requestPhotoSuccess() {
+        //remove permission for another apps
         requireActivity().revokeUriPermission(photoUri,
             Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        talkBackOfMakePhotoResult(getString(R.string.photo_success_added))
         updatePhotoView()
     }
 
