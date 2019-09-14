@@ -126,6 +126,12 @@ class CrimeListFragment : Fragment() {
         crimeRecyclerView.adapter = adapter
     }
 
+    private val makeContentDescription: (String, String, Boolean) -> String = { title, time, solved ->
+        "$title, $time, ${ 
+        if (solved) getString(R.string.crime_handcuff_icon_description)
+        else "crime not solved" }"
+    }
+
     private inner class CrimeHolder(view: View)
         : RecyclerView.ViewHolder(view), View.OnClickListener {
 
@@ -146,15 +152,29 @@ class CrimeListFragment : Fragment() {
 
         fun bind(crime: Crime) {
             this.crime = crime
-            titleTextView.text = this.crime.title
-            // “Monday, Jul 22, 2019.”
-            val date = android.text.format.DateFormat.format(
-                "EEEE, MMM dd, yyyy", this.crime.date)
-            dateTextView.text = date
-            solvedImageView.visibility = if (crime.isSolved)
-                View.VISIBLE
-            else
-                View.GONE
+
+            titleTextView.apply {
+                text = crime.title
+                val isSolved = if (crime.isSolved)
+                    getString(R.string.crime_handcuff_icon_description)
+                else
+                    "crime not Solved"
+                contentDescription = (this.text.toString() + isSolved)
+            }
+            dateTextView.apply {
+                // “Monday, Jul 22, 2019.”
+                val date = android.text.format.DateFormat.format(
+                    "EEEE, MMM dd, yyyy", crime.date
+                )
+                text = date
+                contentDescription = this.text
+            }
+            solvedImageView.apply {
+                visibility = if (crime.isSolved)
+                    View.VISIBLE
+                else
+                    View.GONE
+            }
         }
     }
 

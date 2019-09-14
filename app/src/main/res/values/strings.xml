@@ -28,4 +28,5 @@ The crime was discovered on %2$s. %3$s, and %4$s
 Crime scene photo (not set)
 </string>
     <string name="crime_photo_image_description">Crime scene photo (set)</string>
+    <string name="crime_handcuff_icon_description">Crime is solved</string>
 </resources>
