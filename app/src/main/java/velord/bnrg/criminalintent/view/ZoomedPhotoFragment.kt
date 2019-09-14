@@ -9,8 +9,8 @@ import androidx.fragment.app.Fragment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import velord.bnrg.criminalintent.R
-import velord.bnrg.criminalintent.doOnGlobalLayout
-import velord.bnrg.criminalintent.updatePhotoView
+import velord.bnrg.criminalintent.utils.doOnGlobalLayout
+import velord.bnrg.criminalintent.utils.updatePhotoView
 import java.io.File
 
 private const val PHOTO_FILE = "photo"

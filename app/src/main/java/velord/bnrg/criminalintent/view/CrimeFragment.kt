@@ -26,12 +26,12 @@ import androidx.lifecycle.ViewModelProviders
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import velord.bnrg.criminalintent.R
-import velord.bnrg.criminalintent.doOnGlobalLayout
 import velord.bnrg.criminalintent.model.Crime
-import velord.bnrg.criminalintent.updatePhotoView
+import velord.bnrg.criminalintent.utils.doOnGlobalLayout
+import velord.bnrg.criminalintent.utils.parseLocalDateTime
+import velord.bnrg.criminalintent.utils.updatePhotoView
 import velord.bnrg.criminalintent.viewModel.CrimeDetailViewModel
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.*
 
 private const val TAG = "CrimeFragment"
@@ -262,10 +262,14 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     private fun updateUI() {
         titleField.setText(crime.title)
 
-        val dateForDateButton = parseDateTime(crime.date,
-            DATE_FORMAT)
-        val dateForTimeButton = parseDateTime(crime.date,
-            TIME_FORMAT)
+        val dateForDateButton = parseLocalDateTime(
+            crime.date,
+            DATE_FORMAT
+        )
+        val dateForTimeButton = parseLocalDateTime(
+            crime.date,
+            TIME_FORMAT
+        )
         dateButoon.text = dateForDateButton
         timeButton.text = dateForTimeButton
 
@@ -288,8 +292,10 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
             getString(R.string.crime_report_solved)
         else getString(R.string.crime_report_unsolved)
 
-        val dateString = parseDateTime(crime.date,
-            DATE_FORMAT)
+        val dateString = parseLocalDateTime(
+            crime.date,
+            DATE_FORMAT
+        )
         val suspect = if (crime.suspect.isBlank())
             getString(R.string.crime_report_no_suspect)
         else
@@ -297,11 +303,6 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
 
         return getString(R.string.crime_report,
             crime.title, dateString, solvedString, suspect)
-    }
-
-    private fun parseDateTime(value: Date, format: String): String {
-        val sdf = SimpleDateFormat(format, Locale.getDefault())
-        return sdf.format(value)
     }
 
     private val loadCrimeFromDatabase: () -> Unit = {

@@ -1,4 +1,4 @@
-package velord.bnrg.criminalintent
+package velord.bnrg.criminalintent.utils
 
 import android.app.Activity
 import android.graphics.Bitmap
